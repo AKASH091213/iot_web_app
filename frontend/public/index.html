@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Water Monitoring Dashboard</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 20px; }
+    .status { font-size: 2em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div id="root">
+  <h1>Water Level Monitoring</h1>
+  <p>Water Level: <span id="level">--</span></p>
+  <p class="status">Motor: <span id="motor">--</span></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on("sensorData", (data) => {
+      document.getElementById("level").textContent = data.level;
+      document.getElementById("motor").textContent = data.motorStatus;
+    });
+  </script>
+  </div>
+</body>
+</html>
