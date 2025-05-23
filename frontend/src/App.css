@@ -1,22 +1,31 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden; /* prevent horizontal scroll */
+}
+
+
+
 .video-container {
   position: relative;
-  overflow: hidden;
-  min-height: 100vh;
+  min-height: 100vh;  /* full viewport height */
   margin: 0;
   padding: 0;
 }
 
+
 .bg-video {
-  position: absolute;
+  position: fixed;    /* fix the video to viewport */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
-  border: none;
-  outline: none;
+  width: 100vw;       /* viewport width */
+  height: 100vh;      /* viewport height */
+  object-fit: cover;  /* maintain aspect ratio, cover whole area */
+  z-index: -1;        /* behind all content */
+  pointer-events: none; /* allow clicks to pass through */
 }
+
 
 .container {
   max-width: 500px;
