@@ -3,7 +3,7 @@ import mqtt from 'mqtt';
 
 import './App.css';
 
-const MQTT_BROKER_URL = 'ws://broker.hivemq.com:8000/mqtt'; // Public broker WS URL
+const MQTT_BROKER_URL = 'wss://broker.hivemq.com:8000/mqtt'; // Public broker WS URL
 
 function App() {
   const [waterLevel, setWaterLevel] = useState(null);  // Initially null to avoid resetting to 0
