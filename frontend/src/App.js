@@ -1,73 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import mqtt from 'mqtt';
+import { io } from 'socket.io-client';
+
 
 import './App.css';
 
-const MQTT_BROKER_URL = 'wss://broker.hivemq.com:8000/mqtt'; // Public broker WS URL
+//const MQTT_BROKER_URL = 'wss://broker.hivemq.com:8000/mqtt'; // Public broker WS URL
 
 function App() {
   const [waterLevel, setWaterLevel] = useState(null);  // Initially null to avoid resetting to 0
   const [flowRate, setFlowRate] = useState(null);  // Initially null
   const [motorOn, setMotorOn] = useState(false);
-  const [client, setClient] = useState(null);
+  //const [client, setClient] = useState(null);
 
-  useEffect(() => {
-    const mqttClient = mqtt.connect(MQTT_BROKER_URL);
+useEffect(() => {
+  const socket = io('https://iot-web-app-back.onrender.com'); // no trailing slash
 
-    mqttClient.on('connect', () => {
-      console.log('Connected to MQTT broker');
-      
-      mqttClient.subscribe('sensor/data', (err) => {
-        if (err) console.error('Subscribe error:', err);
-      });
+  socket.on('connect', () => {
+    console.log('Connected to backend via Socket.IO');
+  });
 
-      mqttClient.subscribe('motor/status', (err) => {
-        if (err) console.error('Subscribe error:', err);
-      });
-    });
-
-    mqttClient.on('message', (topic, message) => {
-      const payload = message.toString();
-      console.log(`💡 Received [${topic}] ${payload}`);
-
-      if (topic === 'sensor/data') {
-        try {
-          const data = JSON.parse(payload);
-          // Only update if data is valid
-          if (data.waterLevel !== undefined && data.flowRate !== undefined) {
-            setWaterLevel(data.waterLevel);
-            setFlowRate(data.flowRate);
-          }
-        } catch (e) {
-          console.error('Invalid sensor data JSON:', e);
-        }
-      } else if (topic === 'motor/status') {
-        try {
-          const status = JSON.parse(payload);
-          setMotorOn(status.motorOn);
-        } catch (e) {
-          console.error('Invalid motor status JSON:', e);
-        }
-      }
-    });
-
-    setClient(mqttClient);
-
-    return () => {
-      if (mqttClient.connected) {
-        mqttClient.end();
-      }
-    };
-  }, []); // Empty dependency array ensures this effect runs only once
-
-  const handleMotorToggle = () => {
-    const newMotorState = !motorOn;
-    setMotorOn(newMotorState); // Optimistic update
-
-    if (client && client.connected) {
-      client.publish('motor/command', JSON.stringify({ motorOn: newMotorState }));
+  socket.on('sensorData', (data) => {
+    console.log('Received sensor data:', data);
+    if (data.waterLevel !== undefined && data.flowRate !== undefined) {
+      setWaterLevel(data.waterLevel);
+      setFlowRate(data.flowRate);
     }
+  });
+
+  socket.on('motorStatus', (status) => {
+    console.log('Received motor status:', status);
+    setMotorOn(status.motorOn);
+  });
+
+  return () => {
+    socket.disconnect();
   };
+}, []);
+//Empty dependency array ensures this effect runs only once
+const handleMotorToggle = () => {
+  const newMotorState = !motorOn;
+  setMotorOn(newMotorState);
+
+  const socket = io('https://<your-render-app-url>');
+  socket.emit('motorCommand', { motorOn: newMotorState });
+  socket.disconnect(); // avoid opening multiple sockets
+};
+
 
   return (
     <div className="video-container">
