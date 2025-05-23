@@ -15,12 +15,6 @@
 
 
   <script>
-    const socket = io();
-
-    socket.on("sensorData", (data) => {
-      document.getElementById("level").textContent = data.level;
-      document.getElementById("motor").textContent = data.motorStatus;
-    });
   </script>
   </div>
 </body>
