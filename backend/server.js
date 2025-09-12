@@ -37,6 +37,9 @@ mqttClient.on('connect', () => {
   mqttClient.subscribe('motor/command');
 });
 
+// Global motor state
+let motorState = false;
+
 mqttClient.on('message', async (topic, message) => {
   try {
     const msgString = message.toString();
@@ -62,11 +65,14 @@ mqttClient.on('message', async (topic, message) => {
 
       console.log('Received motor command:', command);
 
-      // Emit motor status separately on motor/status topic (best practice)
-      io.emit('motorStatus', command);
+      // Update global motor state
+      motorState = command.motorOn;
+
+      // Emit motor status to frontend clients
+      io.emit('motorStatus', { motorOn: motorState });
 
       // Optionally publish motor status on 'motor/status' topic for consistency
-      mqttClient.publish('motor/status', JSON.stringify(command));
+      mqttClient.publish('motor/status', JSON.stringify({ motorOn: motorState }));
     }
   } catch (error) {
     console.error('Error processing MQTT message:', error);
@@ -84,9 +90,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// Pass mqttClient to routes
+// Pass mqttClient and motorState to routes
 app.set('mqttClient', mqttClient);
 app.set('io', io);
+app.set('motorState', () => motorState);
+app.set('setMotorState', (state) => { motorState = state; });
 app.use('/api', waterDataRoutes);
 
 // Start server

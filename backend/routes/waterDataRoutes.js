@@ -13,7 +13,6 @@ let latestSensorData = {
   waterLevel: 0,
   flowRate: 0,
 };
-let motorState = false;
 
 // POST sensor data (from NodeMCU)
 router.post('/data', async (req, res) => {
@@ -45,20 +44,25 @@ router.get('/data', (req, res) => {
 
 // POST motor toggle (from frontend)
 router.post('/motor', (req, res) => {
-  motorState = req.body.motorOn;
-  console.log('Received motor toggle:', motorState);
+  const getMotorState = req.app.get('motorState');
+  const setMotorState = req.app.get('setMotorState');
+  
+  const newMotorState = req.body.motorOn;
+  setMotorState(newMotorState);
+  console.log('Received motor toggle:', newMotorState);
 
   if (mqttClient && mqttClient.connected) {
-    mqttClient.publish('motor/command', JSON.stringify({ motorOn: motorState }));
+    mqttClient.publish('motor/command', JSON.stringify({ motorOn: newMotorState }));
     console.log('Published motor/command MQTT message');
   }
 
-  res.json({ motorOn: motorState });
+  res.json({ motorOn: newMotorState });
 });
 
 // GET motor state (for NodeMCU fallback)
 router.get('/motor', (req, res) => {
-  res.json({ motorOn: motorState });
+  const getMotorState = req.app.get('motorState');
+  res.json({ motorOn: getMotorState() });
 });
 
 module.exports = router;
