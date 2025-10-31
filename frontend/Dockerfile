@@ -8,10 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl ca-certificates nginx \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
-WORKDIR /app
 
 # Copy package.json and install deps
 COPY package.json package-lock.json* ./
@@ -21,13 +18,13 @@ RUN npm install
 
 # Copy source code and build
 COPY . .
-RUN npm run build
+RUN npm app.js
 
 # Copy build files to nginx html folder
-RUN rm -rf /var/www/html/* && cp -r dist/* /var/www/html/
+
 
 # Expose port
 EXPOSE 80
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+
+
